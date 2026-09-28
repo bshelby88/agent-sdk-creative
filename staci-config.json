@@ -1,0 +1,52 @@
+{
+  "staci": {
+    "name": "Staci Deployment Script",
+    "version": "1.0.0",
+    "description": "Deployment automation for the creative-integrator SDK, designed for Staci operations",
+    "app_name": "tiffany-creative",
+    "region": "iad",
+    "memory": "512",
+    "cpus": 1,
+    "environments": {
+      "staging": {
+        "app_name": "tiffany-creative-staging",
+        "memory": "256",
+        "cpus": 1
+      },
+      "production": {
+        "app_name": "tiffany-creative",
+        "memory": "512",
+        "cpus": 1
+      }
+    },
+    "secrets_required": [
+      "FLY_API_TOKEN",
+      "AIRTABLE_API_KEY",
+      "AIRTABLE_BASE_ID",
+      "OPENROUTER_API_KEY"
+    ],
+    "fly_commands": {
+      "deploy": "fly deploy --remote-only --build-arg NODE_VERSION=22 --memory 512 --cpus 1 --region iad",
+      "launch": "fly launch --name tiffany-creative --region iad --memory 512 --cpus 1 --no-deploy",
+      "status": "fly status --app tiffany-creative",
+      "logs": "fly logs --app tiffany-creative",
+      "health": "curl -sf https://tiffany-creative.fly.dev/health"
+    },
+    "ci_cd": {
+      "workflow_file": ".github/workflows/ci.yml",
+      "trigger": "push to main branch",
+      "required_checks": ["ci/typecheck", "ci/security-audit", "ci/x402-tests"],
+      "auto_deploy": true
+    },
+    "x402_surfaces": {
+      "required_routes": ["/.well-known/x402.json", "/pricing.md", "/llms.txt", "/sample"],
+      "network": "eip155:8453",
+      "asset": "USDC",
+      "facilitator": "https://x402-agent-pay.com/facilitator"
+    },
+    "raen_charter": {
+      "sections": ["§2", "§3", "§5.3", "§6", "§10"],
+      "compliance_required": true
+    }
+  }
+}
