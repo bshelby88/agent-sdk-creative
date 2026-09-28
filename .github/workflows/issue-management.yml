@@ -1,0 +1,114 @@
+# RAEN Fleet — Automated Issue Management
+name: Automated Issue Management
+
+on:
+  issues:
+    types: [opened, labeled, unlabeled, reopened]
+  schedule:
+    # Daily triage at 09:00 UTC
+    - cron: '0 9 * * *'
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # ─── Auto-Triage ────────────────────────────────────────────
+  auto-triage:
+    name: Auto-Triage Issues
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Auto-label issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 50
+            });
+
+            for (const issue of issues) {
+              const title = issue.title.toLowerCase();
+              const body = issue.body?.toLowerCase() || '';
+              const labels = issue.labels.map(l => l.name);
+
+              // Auto-label creative requests
+              if (title.includes('[creative request]') || body.includes('creative asset')) {
+                if (!labels.includes('creative-request')) {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    labels: ['creative-request', 'triage']
+                  });
+                }
+              }
+
+              // Auto-label bugs
+              if (title.includes('[bug]') || body.includes('bug report')) {
+                if (!labels.includes('bug')) {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    labels: ['bug', 'triage']
+                  });
+                }
+              }
+
+              // Auto-label features
+              if (title.includes('[feature]') || body.includes('feature request')) {
+                if (!labels.includes('enhancement')) {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    labels: ['enhancement', 'triage']
+                  });
+                }
+              }
+
+              // Auto-assign RAEN charter labels based on content
+              if (body.includes('x402') || body.includes('surface') || body.includes('pricing')) {
+                if (!labels.includes('x402')) {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    labels: ['x402']
+                  });
+                }
+              }
+            }
+
+            console.log('Auto-triage complete');
+
+      - name: Assign to maintainers
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 50
+            });
+
+            for (const issue of issues) {
+              const labels = issue.labels.map(l => l.name);
+              const hasTriage = labels.some(l => ['creative-request', 'bug', 'enhancement', 'x402'].includes(l));
+              const hasAssignee = issue.assignees && issue.assignees.length > 0;
+
+              if (hasTriage && !hasAssignee) {
+                await github.rest.issues.addAssignees({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  assignees: ['bshelby88']
+                });
+              }
+            }

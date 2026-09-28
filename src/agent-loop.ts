@@ -10,6 +10,7 @@ import { createMCPTools } from "@openrouter/agent/mcp";
 import { creativeTools } from "./creative-tools.js";
 import { CreativeError, handleError, validateStopParams } from "./error-handler.js";
 import { cdpSettlementTool } from "./cdp-settlement.js";
+import { dispatchCreativeRequest, dispatchCreativeStatus, dispatchCreativeCompleted, dispatchPaymentConfirmed, getKernelStatus, dispatchHealthCheck } from "./kernel-bridge.js";
 
 const MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
 const API_KEY = process.env.OPENROUTER_API_KEY || "";
@@ -93,23 +94,33 @@ export async function runCreativeAgent(brief: string, options?: {
   const model = options?.model || MODEL;
   const maxSteps = options?.maxSteps || 10;
   const maxCostUSD = options?.maxCostUSD || 1.00;
+  const requestId = `creative-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   const validation = validateStopParams(maxSteps, maxCostUSD);
   if (!validation.valid) {
     throw new CreativeError(`Invalid stop parameters: ${validation.errors.join(", ")}`, "INVALID_CONFIG", { errors: validation.errors });
   }
 
+  // Dispatch creative.request to RAE-Kernel for A2A coordination
+  await dispatchCreativeRequest(brief, requestId, options?.maxCostUSD ? (options.maxCostUSD > 0.5 ? 'high' : 'normal') : 'normal');
+
   const tools = await buildToolSet(options);
   const stopConditions = [stepCountIs(maxSteps), maxCost(maxCostUSD), hasToolCall("finish")];
 
   try {
+    await dispatchCreativeStatus(requestId, 'running', 'Processing creative brief through OpenRouter agent loop');
+
     const result = await callModel({
       model, input: brief,
       instructions: `You are Tiffany, Creative-Integrator for the RAEN fleet. Create creative assets. Every output must be machine-readable and x402-compliant.`,
       tools, hooks: creativeHooks, stopWhen: stopConditions, allowFinalResponse: true,
     });
+
+    await dispatchCreativeStatus(requestId, 'completed', 'Creative generation complete');
+    await dispatchCreativeCompleted(requestId, `asset-${requestId}`, `dist/creative-${requestId}`);
     return result;
   } catch (err) {
+    await dispatchCreativeStatus(requestId, 'failed', String(err));
     throw new CreativeError(`callModel failed: ${handleError(err)}`, "CALL_MODEL_FAILURE", { model, brief });
   }
 }

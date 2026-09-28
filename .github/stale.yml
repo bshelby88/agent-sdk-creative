@@ -1,0 +1,51 @@
+name: Stale Issue and PR Management
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # ─── Mark Stale Issues ──────────────────────────────────────────
+  mark-stale:
+    name: Mark Stale Issues
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Mark stale issues
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-issue-stale: 30
+          days-before-issue-close: 7
+          days-before-pr-stale: 30
+          days-before-pr-close: 7
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          exempt-issue-labels: 'pinned,security,bug'
+          exempt-pr-labels: 'security,bug'
+          operations-per-run: 50
+          starting-day-number: 30
+          days-before-issue-metadata-updated: 7
+          days-before-pr-metadata-updated: 7
+
+  # ─── Fleet Sync Check ───────────────────────────────────────────
+  fleet-sync-check:
+    name: Fleet Sync Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check RAEN fleet health
+        run: |
+          echo "=== RAEN Fleet Health Check ==="
+          echo "Checking repository sync status..."
+          gh api repos/bshelby88/agent-sdk-creative -q '{pushed_at,stargazers_count,forks_count,open_issues_count}' 2>&1 || true
+          echo ""
+          echo "Fleet sync check complete"

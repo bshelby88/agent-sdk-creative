@@ -14,6 +14,7 @@ import { tool } from '@openrouter/agent';
 import { z } from 'zod';
 import { execSync } from 'child_process';
 import { cdpSettlementTool } from './cdp-settlement.js';
+import { connectMCP } from './mcp-integration.js';
 
 // ─── ASCII Art Tool ─────────────────────────────────────────────────
 export const generate_ascii_art = tool({
@@ -215,7 +216,31 @@ export const generate_x402_surface = tool({
   },
 });
 
-// ─── Music Composition Tool ─────────────────────────────────
+// ─── MCP Creative Connector Tool ──────────────────────────────
+export const connect_creative_mcp = tool({
+  name: 'connect_creative_mcp',
+  description: 'Connect to remote MCP servers (ComfyUI, OpenSea, GitHub) for creative asset generation.',
+  inputSchema: z.object({
+    server: z.enum(['comfyui', 'opensea', 'github']).default('comfyui'),
+    action: z.string().describe('Action to perform on the MCP server'),
+  }),
+  outputSchema: z.object({
+    connected: z.boolean(),
+    toolCount: z.number(),
+    tools: z.array(z.string()),
+  }),
+  execute: async ({ server, action }) => {
+    const configs = [
+      { url: 'https://comfyui.example.com/mcp', name: 'ComfyUI', authKind: 'bearer' as const },
+      { url: 'https://opensea.example.com/mcp', name: 'OpenSea', authKind: 'bearer' as const },
+      { url: 'https://github.example.com/mcp', name: 'GitHub', authKind: 'token' as const },
+    ];
+    const match = configs.find(c => c.name.toLowerCase() === server);
+    if (!match) return { connected: false, toolCount: 0, tools: [] };
+    const handle = await connectMCP({ url: match.url, name: match.name, authKind: match.authKind });
+    return { connected: handle.connected, toolCount: handle.tools.length, tools: handle.tools.map((t: any) => t.name || 'unknown') };
+  },
+});
 export const compose_music = tool({
   name: 'compose_music',
   description: 'Compose simple music/melodies as structured data for creative campaigns.',
@@ -229,9 +254,9 @@ export const compose_music = tool({
   }),
   outputSchema: z.object({
     compositionId: z.string(),
-    bars: z.array(z.object({ bar: z.number(); notes: z.array(z.object({ pitch: z.string(); duration: z.string(); instrument: z.string() })) })),
+    bars: z.array(z.object({ bar: z.number(), notes: z.array(z.object({ pitch: z.string(), duration: z.string(), instrument: z.string() })) })),
     tempo: z.number(), key: z.string(), instruments: z.array(z.string()), mood: z.string(),
-    metadata: z.object({ campaign: z.string().optional(); generatedAt: z.string(); style: z.string() }),
+    metadata: z.object({ campaign: z.string().optional(), generatedAt: z.string(), style: z.string() }),
   }),
   execute: async ({ mood, tempo, duration, key, instruments, campaign }) => {
     const scale = key.includes('minor') ? ['A', 'B', 'C', 'D', 'E', 'F', 'G'] : ['C', 'D', 'E', 'F', 'G', 'A', 'B'];

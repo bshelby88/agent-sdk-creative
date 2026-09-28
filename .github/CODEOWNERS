@@ -1,0 +1,36 @@
+# RAEN Fleet — Code Ownership
+# @see https://docs.github.com/en/repositories/using-projects/using-code-owners-to-change-code-review-permissions
+
+# Default owners for all files
+* @bshelby88
+
+# Creative tools
+src/creative-tools.ts @bshelby88
+src/agent-loop.ts @bshelby88
+src/surfaces-generator.ts @bshelby88
+
+# x402 Payment & Settlement
+src/cdp-settlement.ts @bshelby88
+src/kernel-bridge.ts @bshelby88
+
+# MCP Integration
+src/mcp-integration.ts @bshelby88
+src/event-handler.ts @bshelby88
+
+# CI/CD
+.github/workflows/ @bshelby88
+.github/ISSUE_TEMPLATE/ @bshelby88
+
+# Deployment
+deploy.sh @bshelby88
+staci-config.json @bshelby88
+fly.toml @bshelby88
+
+# Configuration
+tsconfig.json @bshelby88
+package.json @bshelby88
+package-lock.json @bshelby88
+
+# x402 Surfaces
+x402-marketing-surfaces/ @bshelby88
+x402.json @bshelby88
