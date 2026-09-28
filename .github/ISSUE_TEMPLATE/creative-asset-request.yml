@@ -1,0 +1,74 @@
+name: Creative Asset Request
+description: Request a new creative asset, tool, or surface for the RAEN fleet
+title: "[Creative Request] "
+labels: ["creative-request", "triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Creative Asset Request for the RAEN Fleet
+  - type: dropdown
+    id: asset-type
+    attributes:
+      label: Asset Type
+      description: Select the type of creative asset needed
+      options:
+        - ASCII Art
+        - SVG Diagram
+        - HTML Landing Page
+        - Music/Composition
+        - Design Token (DESIGN.md)
+        - Sketch Mockup
+        - x402 Surface
+        - Other
+  - type: textarea
+    id: description
+    attributes:
+      label: Brief Description
+      description: Describe the creative asset you need
+      placeholder: "e.g., Generate an ASCII art banner for the RAEN fleet launch"
+      render: markdown
+    validations:
+      required: true
+  - type: dropdown
+    id: charter-alignment
+    attributes:
+      label: RAEN Charter Alignment
+      description: Which section of the RAEN A2A Charter does this align with?
+      options:
+        - §2 Claim-Mark-Release
+        - §3 A2A Dispatch Protocol
+        - §5.3 Machine-Readable Surface Compliance
+        - §6 AIP v1
+        - §10 Search Methodology
+        - Not sure
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How quickly is this needed?
+      options:
+        - Urgent (deploy within 24h)
+        - High (this sprint)
+        - Normal (next batch)
+        - Low (whenever)
+      default: Normal
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: What does "done" look like for this asset?
+      placeholder: |
+        - [ ] Machine-readable output generated
+        - [ ] x402-compliant surfaces served
+        - [ ] Passes npm run build
+        - [ ] Deployed to Fly.io
+      render: markdown
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Links, references, or any other context
+      placeholder: "Optional additional details"
+      render: markdown

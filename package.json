@@ -1,0 +1,30 @@
+{
+  "name": "@tiffany/agent-sdk-creative",
+  "version": "1.0.0",
+  "description": "Creative-integrator Agent SDK for the RAEN fleet — ASCII art, SVG diagrams, HTML landings, music, design tokens, and x402 surface automation",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsx src/index.ts",
+    "agent": "tsx src/index.ts",
+    "surfaces": "tsx src/index.ts --surfaces",
+    "audit": "tsx src/index.ts --audit",
+    "pipeline": "tsx src/index.ts --pipeline",
+    "batch": "tsx src/index.ts --batch",
+    "dev": "tsx watch src/index.ts"
+  },
+  "keywords": ["openrouter", "agent-sdk", "a2a", "x402", "creative", "tiffany", "raen"],
+  "author": "Tiffany (Creative-Integrator, RAEN Fleet)",
+  "license": "ISC",
+  "dependencies": {
+    "@openrouter/agent": "^0.11.0",
+    "@openrouter/mcp": "^1.1.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@openrouter/devtools": "^0.1.0",
+    "typescript": "^5.7.0",
+    "tsx": "^4.7.0"
+  }
+}

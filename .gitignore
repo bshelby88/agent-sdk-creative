@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.secret
+**/secrets/
+
+# Generated surfaces
+x402-marketing-surfaces/
+*.json
+!package.json
+!tsconfig.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test
+coverage/
+.nyc_output/
+
+# Fly
+.fly/
+*.fly.toml
+fly.toml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# Claude
+.claude/
+
+# Hermes
+.hermes/

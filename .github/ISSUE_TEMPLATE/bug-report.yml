@@ -1,0 +1,77 @@
+name: Bug Report
+description: Report a bug in the creative agent SDK
+title: "[Bug] "
+labels: ["bug", "triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Report
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is
+      placeholder: "e.g., TypeScript compilation fails when using --surfaces flag"
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Run `npm run build`
+        2. Execute with: `npx tsx src/index.ts "your brief"`
+        3. Observe the error
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: "The build should complete successfully"
+      render: markdown
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: "Build fails with TypeScript error"
+      render: markdown
+    validations:
+      required: true
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js Version
+      description: The Node.js version you are using
+      placeholder: "e.g., 22.x"
+  - type: textarea
+    id: error-output
+    attributes:
+      label: Error Output
+      description: Paste any error messages or stack traces
+      placeholder: "Paste error output here"
+      render: markdown
+  - type: dropdown
+    id: charter-impact
+    attributes:
+      label: RAEN Charter Impact
+      description: Does this affect fleet compliance?
+      options:
+        - Section 5.3 Surface Compliance broken
+        - x402 payment flow broken
+        - A2A dispatch broken
+        - No charter impact
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem
+      placeholder: "Optional"
+      render: markdown

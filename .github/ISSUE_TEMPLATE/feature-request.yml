@@ -1,0 +1,88 @@
+name: Feature Request
+description: Suggest a new feature, tool, or capability for the creative SDK
+title: "[Feature] "
+labels: ["enhancement", "triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request for the Creative Agent SDK
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: A clear and concise description of the feature
+      placeholder: "Describe the feature you'd like to see"
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why is this feature needed? What problem does it solve?
+      placeholder: "Describe the motivation behind this feature"
+      render: markdown
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like
+      placeholder: "Describe how you'd like this to work"
+      render: markdown
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Approaches
+      description: Describe any alternative solutions you've considered
+      placeholder: "Optional"
+      render: markdown
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: Core SDK change
+          required: false
+        - label: New creative tool
+          required: false
+        - label: New x402 surface type
+          required: false
+        - label: CI/CD improvement
+          required: false
+        - label: Documentation update
+          required: false
+        - label: Fleet integration
+          required: false
+  - type: dropdown
+    id: charter-alignment
+    attributes:
+      label: RAEN Charter Alignment
+      options:
+        - §2 Claim-Mark-Release
+        - §3 A2A Dispatch Protocol
+        - §5.3 Machine-Readable Surface Compliance
+        - §6 AIP v1 subagents
+        - Other
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: What needs to happen for this to be accepted?
+      placeholder: |
+        - [ ] TypeScript compilation passes
+        - [ ] Tests added
+        - [ ] Security audit clean
+        - [ ] Deployed to Fly.io
+      render: markdown
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Critical
+        - High
+        - Normal
+        - Low
+      default: Normal
