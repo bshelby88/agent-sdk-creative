@@ -15,6 +15,7 @@ x402-marketing-surfaces/
 !package.json
 !tsconfig.json
 !staci-config.json
+!package-lock.json
 
 # OS
 .DS_Store
