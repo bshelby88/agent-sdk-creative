@@ -19,6 +19,8 @@
 
 import { execSync } from 'child_process';
 import { join } from 'path';
+import { tool } from '@openrouter/agent';
+import { z } from 'zod';
 
 // ─── Constants ────────────────────────────────────────────────────────────
 
@@ -273,22 +275,37 @@ export function settleCreativeAsset(
 
 // ─── Export for agent-loop integration ────────────────────────────────────
 
-export const cdpSettlementTool = {
+/**
+ * Settlement tool for the callModel loop.
+ *
+ * Built with the SDK's `tool()` helper so it is a valid `Tool` (the previous
+ * plain-object form was never accepted by the agent loop). This tool moves
+ * real USDC, so `requireApproval: true` — the loop pauses in
+ * `awaiting_approval` and a human must approve each call before it executes
+ * (RAE fleet operating plan SEC-01 / PAY-02: no unattended settlement).
+ */
+export const cdpSettlementTool = tool({
   name: 'cdp_settle_creative',
-  description: 'Settle creative asset payments via CDP smart accounts using USDC on Base (eip155:8453). Uses gasless ERC-4337 useroperations via CDP paymaster.',
-  inputSchema: {
-    type: 'object' as const,
-    properties: {
-      serviceName: { type: 'string', description: 'Name of the creative service' },
-      price: { type: 'string', description: 'Price in USDC (e.g. "$0.10")' },
-      payTo: { type: 'string', description: 'Recipient address (defaults to canonical treasury)' },
-      asset: { type: 'string', default: 'USDC', description: 'Settlement asset' },
-      network: { type: 'string', default: NETWORK, description: 'Blockchain network' },
-    },
-    required: ['serviceName', 'price'] as const,
+  description: 'Settle creative asset payments via CDP smart accounts using USDC on Base (eip155:8453). Uses gasless ERC-4337 useroperations via CDP paymaster. Requires human approval.',
+  inputSchema: z.object({
+    serviceName: z.string().describe('Name of the creative service'),
+    price: z.string().describe('Price in USDC (e.g. "$0.10")'),
+    payTo: z.string().optional().describe('Recipient address (defaults to canonical treasury)'),
+    asset: z.string().default('USDC').describe('Settlement asset'),
+    network: z.string().default(NETWORK).describe('Blockchain network'),
+  }),
+  outputSchema: z.object({
+    status: z.enum(['broadcast', 'pending', 'confirmed', 'failed']),
+    userOpHash: z.string().optional(),
+    txHash: z.string().optional(),
+    network: z.string(),
+    amount: z.string(),
+    asset: z.string(),
+    payTo: z.string(),
+    from: z.string(),
+  }),
+  requireApproval: true,
+  execute: async ({ serviceName, price, payTo }) => {
+    return settleCreativeAsset(serviceName, price, payTo);
   },
-  execute: async (input: { serviceName: string; price: string; payTo?: string; asset?: string; network?: string }) => {
-    const result = settleCreativeAsset(input.serviceName, input.price, input.payTo);
-    return result;
-  },
-};
+});

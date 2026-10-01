@@ -10,14 +10,36 @@
  */
 
 import { createMCPTools } from '@openrouter/agent/mcp';
+import type { MCPAuth } from '@openrouter/agent/mcp';
 import { CreativeError, ErrorCode, handleError } from './error-handler.js';
 
 export interface MCPConfig {
   url: string;
   name: string;
+  /**
+   * How to authenticate. `bearer` sends `Authorization: Bearer <authToken>`;
+   * `headers` sends `authToken` as a raw `Authorization` header value.
+   * `oauth` requires an `OAuthClientProvider` and is not wired here yet —
+   * connections configured with it fall through unauthenticated.
+   */
   authKind?: 'bearer' | 'headers' | 'oauth';
   authToken?: string;
   toolNamePrefix?: string;
+}
+
+/** Build the SDK's discriminated `MCPAuth` union from a flat config. */
+function buildAuth(config: MCPConfig): MCPAuth | undefined {
+  const token = config.authToken ?? process.env.MCP_TOKEN ?? '';
+  if (!token) return undefined;
+  switch (config.authKind ?? 'bearer') {
+    case 'bearer':
+      return { kind: 'bearer', token };
+    case 'headers':
+      return { kind: 'headers', headers: { Authorization: token } };
+    case 'oauth':
+      console.warn(`[MCPIntegration] oauth auth for ${config.name} not configured; connecting unauthenticated.`);
+      return undefined;
+  }
 }
 
 export interface MCPToolHandle {
@@ -44,14 +66,13 @@ export async function connectMCP(config: MCPConfig): Promise<MCPToolHandle> {
   try {
     const mcp = await createMCPTools({
       url: config.url,
-      auth: { kind: config.authKind || 'bearer', token: config.authToken || '' },
+      auth: buildAuth(config),
       toolNamePrefix: config.toolNamePrefix || config.name.toLowerCase().replace(/\s+/g, '_'),
     });
 
-    const toolNames = mcp.tools.map((t: any) => t.name || t.function?.name || 'unknown');
     return {
       name: config.name,
-      tools: mcp.tools,
+      tools: [...mcp.tools],
       connected: true,
     };
   } catch (err) {
@@ -146,5 +167,5 @@ export function mcpToolsToSurfaces(mcpTools: any[]): Array<{ path: string; metho
 export const CREATIVE_MCP_SERVERS: MCPConfig[] = [
   { url: 'https://comfyui.example.com/mcp', name: 'ComfyUI', authKind: 'bearer', toolNamePrefix: 'comfy' },
   { url: 'https://opensea.example.com/mcp', name: 'OpenSea', authKind: 'bearer', toolNamePrefix: 'opensea' },
-  { url: 'https://github.example.com/mcp', name: 'GitHub', authKind: 'token', toolNamePrefix: 'gh' },
+  { url: 'https://github.example.com/mcp', name: 'GitHub', authKind: 'bearer', toolNamePrefix: 'gh' },
 ];

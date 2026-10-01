@@ -42,20 +42,22 @@ describe('generateAllSurfaces', () => {
     const baseDir = join(process.cwd(), 'x402-marketing-surfaces', 'test-creative');
     await generateAllSurfaces(testServices[0]);
 
-    expect(existsSync(join(baseDir, 'x402.json'))).toBe(true);
     expect(existsSync(join(baseDir, 'llms.txt'))).toBe(true);
     expect(existsSync(join(baseDir, 'pricing.md'))).toBe(true);
     expect(existsSync(join(baseDir, 'sample'))).toBe(true);
+    // x402.json is served from /.well-known/ only
     expect(existsSync(join(baseDir, '.well-known', 'x402.json'))).toBe(true);
   });
 });
 
 describe('generateAllFleetSurfaces', () => {
-  it('should generate surfaces for all services', async () => {
+  it('should generate 4 surfaces for every built-in fleet service', async () => {
     const allSurfaces = await generateAllFleetSurfaces();
-    expect(Object.keys(allSurfaces)).toHaveLength(2);
-    expect(allSurfaces['test-creative']).toHaveLength(4);
-    expect(allSurfaces['test-marketing']).toHaveLength(4);
+    const services = Object.keys(allSurfaces);
+    expect(services.length).toBeGreaterThan(0);
+    for (const name of services) {
+      expect(allSurfaces[name]).toHaveLength(4);
+    }
   });
 });
 

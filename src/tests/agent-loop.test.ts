@@ -100,7 +100,7 @@ describe('CreativeAssetState', () => {
 describe('buildToolSet', () => {
   it('should return all creative tools without MCP servers', async () => {
     const tools = await buildToolSet();
-    expect(tools.length).toBe(8); // 8 creative tools
+    expect(tools.length).toBe(9); // 8 creative tools + cdp_settle_creative
   });
 
   it('should include all tools by name', async () => {

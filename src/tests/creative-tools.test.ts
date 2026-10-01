@@ -13,13 +13,14 @@ import {
   generate_x402_surface,
   compose_music,
   creativeTools,
+  runTool,
 } from '../creative-tools.js';
 import { validateSurfaceCompliance } from '../error-handler.js';
 
 // ─── ASCII Art Tool ────────────────────────────────────
 describe('generate_ascii_art', () => {
   it('should produce ASCII art output', async () => {
-    const result = await generate_ascii_art.execute({ text: 'RAEN', font: 'slant', style: 'banner' });
+    const result = await runTool(generate_ascii_art, { text: 'RAEN', font: 'slant', style: 'banner' });
     expect(result.asciiArt).toBeTruthy();
     expect(result.asciiArt.length).toBeGreaterThan(0);
     expect(result.font).toBe('slant');
@@ -27,19 +28,19 @@ describe('generate_ascii_art', () => {
   });
 
   it('should produce fallback output when pyfiglet fails', async () => {
-    const result = await generate_ascii_art.execute({ text: 'Test', font: 'nonexistent', style: 'banner' });
+    const result = await runTool(generate_ascii_art, { text: 'Test', font: 'nonexistent', style: 'banner' });
     expect(result.asciiArt).toBeTruthy();
   });
 
   it('should reject text longer than 80 characters', async () => {
-    await expect(generate_ascii_art.execute({ text: 'A'.repeat(81), font: 'slant', style: 'banner' })).rejects.toBeDefined();
+    await expect(runTool(generate_ascii_art, { text: 'A'.repeat(81), font: 'slant', style: 'banner' })).rejects.toBeDefined();
   });
 });
 
 // ─── SVG Diagram Tool ──────────────────────────────────
 describe('create_svg_diagram', () => {
   it('should produce valid SVG content', async () => {
-    const result = await create_svg_diagram.execute({
+    const result = await runTool(create_svg_diagram, {
       diagramType: 'flowchart',
       title: 'Test Diagram',
       nodes: [{ id: '1', label: 'Start', type: 'start' }, { id: '2', label: 'End', type: 'end' }],
@@ -53,7 +54,7 @@ describe('create_svg_diagram', () => {
   });
 
   it('should produce light theme SVG', async () => {
-    const result = await create_svg_diagram.execute({
+    const result = await runTool(create_svg_diagram, {
       diagramType: 'architecture', title: 'Light', nodes: [{ id: 'a', label: 'A', type: 'node' }],
       connections: [], theme: 'light',
     });
@@ -64,7 +65,7 @@ describe('create_svg_diagram', () => {
 // ─── HTML Landing Tool ─────────────────────────────────
 describe('build_html_landing', () => {
   it('should produce valid HTML with x402 surfaces', async () => {
-    const result = await build_html_landing.execute({
+    const result = await runTool(build_html_landing, {
       serviceName: 'TestService',
       serviceDescription: 'A test service',
       endpoints: [{ path: '/api/test', method: 'POST', price: '$0.10', description: 'Test endpoint' }],
@@ -79,7 +80,7 @@ describe('build_html_landing', () => {
   });
 
   it('should produce HTML without x402 when disabled', async () => {
-    const result = await build_html_landing.execute({
+    const result = await runTool(build_html_landing, {
       serviceName: 'TestService', serviceDescription: 'A test service',
       endpoints: [], x402Enabled: false,
     });
@@ -91,7 +92,7 @@ describe('build_html_landing', () => {
 // ─── Design MD Token Tool ──────────────────────────────
 describe('create_design_md_token', () => {
   it('should produce design-md format', async () => {
-    const result = await create_design_md_token.execute({
+    const result = await runTool(create_design_md_token, {
       tokenType: 'color',
       tokens: [{ name: 'primary', value: '#1a1a2e', description: 'Primary color' }],
       format: 'design-md',
@@ -102,7 +103,7 @@ describe('create_design_md_token', () => {
   });
 
   it('should produce css-variables format', async () => {
-    const result = await create_design_md_token.execute({
+    const result = await runTool(create_design_md_token, {
       tokenType: 'color',
       tokens: [{ name: 'bg', value: '#fff' }],
       format: 'css-variables',
@@ -115,7 +116,7 @@ describe('create_design_md_token', () => {
 // ─── Sketch Mockup Tool ────────────────────────────────
 describe('generate_sketch_mockup', () => {
   it('should produce hand-drawn style HTML', async () => {
-    const result = await generate_sketch_mockup.execute({
+    const result = await runTool(generate_sketch_mockup, {
       type: 'landing-page',
       spec: { header: 'My Landing', sections: [{ title: 'Section 1', content: 'Content here' }], footer: 'Footer' },
       style: 'hand-drawn',
@@ -125,7 +126,7 @@ describe('generate_sketch_mockup', () => {
   });
 
   it('should produce clean style HTML', async () => {
-    const result = await generate_sketch_mockup.execute({
+    const result = await runTool(generate_sketch_mockup, {
       type: 'dashboard',
       spec: { header: 'Dashboard', sections: [] },
       style: 'clean',
@@ -147,7 +148,7 @@ describe('generate_x402_surface', () => {
   };
 
   it('should produce valid x402.json', async () => {
-    const result = await generate_x402_surface.execute({ ...service, surfaceType: 'x402.json' });
+    const result = await runTool(generate_x402_surface, { ...service, surfaceType: 'x402.json' });
     expect(result.surfacePath).toBe('/.well-known/x402.json');
     expect(result.contentType).toBe('application/json');
     const parsed = JSON.parse(result.content);
@@ -157,19 +158,19 @@ describe('generate_x402_surface', () => {
   });
 
   it('should produce valid llms.txt', async () => {
-    const result = await generate_x402_surface.execute({ ...service, surfaceType: 'llms.txt' });
+    const result = await runTool(generate_x402_surface, { ...service, surfaceType: 'llms.txt' });
     expect(result.surfacePath).toBe('/llms.txt');
     expect(result.content).toContain('# test-service');
   });
 
   it('should produce valid pricing.md', async () => {
-    const result = await generate_x402_surface.execute({ ...service, surfaceType: 'pricing.md' });
+    const result = await runTool(generate_x402_surface, { ...service, surfaceType: 'pricing.md' });
     expect(result.surfacePath).toBe('/pricing.md');
     expect(result.content).toContain('| Endpoint | Price | Network |');
   });
 
   it('should produce valid sample.json', async () => {
-    const result = await generate_x402_surface.execute({ ...service, surfaceType: 'sample' });
+    const result = await runTool(generate_x402_surface, { ...service, surfaceType: 'sample' });
     expect(result.surfacePath).toBe('/sample');
     const parsed = JSON.parse(result.content);
     expect(parsed.service).toBe('test-service');
@@ -177,14 +178,14 @@ describe('generate_x402_surface', () => {
   });
 
   it('should throw on unknown surface type', async () => {
-    await expect(generate_x402_surface.execute({ ...service, surfaceType: 'unknown' } as any)).rejects.toThrow();
+    await expect(runTool(generate_x402_surface, { ...service, surfaceType: 'unknown' } as any)).rejects.toThrow();
   });
 });
 
 // ─── Music Composition Tool ────────────────────────────
 describe('compose_music', () => {
   it('should produce a valid composition', async () => {
-    const result = await compose_music.execute({
+    const result = await runTool(compose_music, {
       mood: 'uplifting', tempo: 120, duration: 8, key: 'C major', instruments: ['piano', 'strings'],
     });
     expect(result.compositionId).toBeTruthy();
@@ -197,7 +198,8 @@ describe('compose_music', () => {
   });
 
   it('should generate bars with correct note structure', async () => {
-    const result = await compose_music.execute({ mood: 'dark', duration: 2, key: 'A minor' });
+    const result = await runTool(compose_music, { mood: 'dark', duration: 4, key: 'A minor' });
+    expect(result.bars).toHaveLength(4);
     expect(result.bars[0].notes.length).toBeGreaterThan(0);
     expect(result.bars[0].notes[0].pitch).toBeTruthy();
     expect(result.bars[0].notes[0].instrument).toBeTruthy();
@@ -211,12 +213,12 @@ describe('creativeTools array', () => {
   });
 
   it('should include compose_music', () => {
-    const names = creativeTools.map((t: any) => t.name);
+    const names = creativeTools.map((t) => t.function.name);
     expect(names).toContain('compose_music');
   });
 
   it('should include generate_x402_surface', () => {
-    const names = creativeTools.map((t: any) => t.name);
+    const names = creativeTools.map((t) => t.function.name);
     expect(names).toContain('generate_x402_surface');
   });
 });

@@ -9,7 +9,7 @@
  * - GET /sample
  */
 
-import { generate_x402_surface } from './creative-tools.js';
+import { generate_x402_surface, runTool } from './creative-tools.js';
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -54,7 +54,7 @@ export async function generateAllSurfaces(service: ServiceSurface): Promise<stri
   const baseDir = join(process.cwd(), 'x402-marketing-surfaces', service.serviceName);
 
   for (const surfaceType of ['x402.json', 'llms.txt', 'pricing.md', 'sample'] as const) {
-    const result = await generate_x402_surface.execute({
+    const result = await runTool(generate_x402_surface, {
       surfaceType,
       serviceName: service.serviceName,
       serviceDescription: service.serviceDescription,

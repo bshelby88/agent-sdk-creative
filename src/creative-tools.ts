@@ -11,10 +11,32 @@
  */
 
 import { tool } from '@openrouter/agent';
+import type { ToolWithExecute } from '@openrouter/agent';
 import { z } from 'zod';
+import { parseAsync } from 'zod/v4/core';
+import type { $ZodObject, $ZodShape, $ZodType, input as ZodInput, output as ZodOutput } from 'zod/v4/core';
 import { execSync } from 'child_process';
-import { cdpSettlementTool } from './cdp-settlement.js';
 import { connectMCP } from './mcp-integration.js';
+
+// ─── Direct tool invocation helper ──────────────────────────────────
+/**
+ * Invoke a `tool()`-built tool directly (outside the callModel loop).
+ *
+ * `tool()` returns `{ type, function: { inputSchema, execute, ... } }`, so the
+ * executor lives at `.function.execute`, not `.execute`. This helper validates
+ * the input against the tool's Zod schema (applying defaults) and runs it —
+ * the same contract the agent loop provides at runtime.
+ */
+export async function runTool<
+  TInput extends $ZodObject<$ZodShape>,
+  TOutput extends $ZodType,
+>(
+  t: ToolWithExecute<TInput, TOutput, any, any, any>,
+  input: ZodInput<TInput>,
+): Promise<ZodOutput<TOutput>> {
+  const parsed = await parseAsync(t.function.inputSchema, input);
+  return (await t.function.execute(parsed)) as ZodOutput<TOutput>;
+}
 
 // ─── ASCII Art Tool ─────────────────────────────────────────────────
 export const generate_ascii_art = tool({
@@ -233,7 +255,7 @@ export const connect_creative_mcp = tool({
     const configs = [
       { url: 'https://comfyui.example.com/mcp', name: 'ComfyUI', authKind: 'bearer' as const },
       { url: 'https://opensea.example.com/mcp', name: 'OpenSea', authKind: 'bearer' as const },
-      { url: 'https://github.example.com/mcp', name: 'GitHub', authKind: 'token' as const },
+      { url: 'https://github.example.com/mcp', name: 'GitHub', authKind: 'bearer' as const },
     ];
     const match = configs.find(c => c.name.toLowerCase() === server);
     if (!match) return { connected: false, toolCount: 0, tools: [] };
