@@ -22,7 +22,7 @@ export interface MCPConfig {
 
 export interface MCPToolHandle {
   name: string;
-  tools: any[];
+  tools: readonly unknown[];
   connected: boolean;
   error?: CreativeError;
 }
@@ -42,9 +42,15 @@ export interface MCPConnectionState {
  */
 export async function connectMCP(config: MCPConfig): Promise<MCPToolHandle> {
   try {
+    const authKind = config.authKind || 'bearer';
+    const auth = authKind === 'bearer'
+      ? { kind: 'bearer' as const, token: config.authToken || '' }
+      : authKind === 'headers'
+        ? { kind: 'headers' as const, headers: { Authorization: config.authToken || '' } }
+        : { kind: 'bearer' as const, token: config.authToken || '' };
     const mcp = await createMCPTools({
       url: config.url,
-      auth: { kind: config.authKind || 'bearer', token: config.authToken || '' },
+      auth,
       toolNamePrefix: config.toolNamePrefix || config.name.toLowerCase().replace(/\s+/g, '_'),
     });
 
@@ -146,5 +152,5 @@ export function mcpToolsToSurfaces(mcpTools: any[]): Array<{ path: string; metho
 export const CREATIVE_MCP_SERVERS: MCPConfig[] = [
   { url: 'https://comfyui.example.com/mcp', name: 'ComfyUI', authKind: 'bearer', toolNamePrefix: 'comfy' },
   { url: 'https://opensea.example.com/mcp', name: 'OpenSea', authKind: 'bearer', toolNamePrefix: 'opensea' },
-  { url: 'https://github.example.com/mcp', name: 'GitHub', authKind: 'token', toolNamePrefix: 'gh' },
+  { url: 'https://github.example.com/mcp', name: 'GitHub', authKind: 'bearer', toolNamePrefix: 'gh' },
 ];

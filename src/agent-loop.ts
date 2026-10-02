@@ -5,10 +5,11 @@
  * lifecycle hooks, MCP tool integration, and async tool patterns.
  */
 
-import { callModel, stepCountIs, maxCost, hasToolCall, HooksManager } from "@openrouter/agent";
+import { callModel, stepCountIs, maxCost, hasToolCall, HooksManager, OpenRouter } from "@openrouter/agent";
+import type { Tool } from "@openrouter/agent";
 import { createMCPTools } from "@openrouter/agent/mcp";
 import { creativeTools } from "./creative-tools.js";
-import { CreativeError, handleError, validateStopParams } from "./error-handler.js";
+import { CreativeError, ErrorCode, handleError, validateStopParams } from "./error-handler.js";
 import { cdpSettlementTool } from "./cdp-settlement.js";
 import { dispatchCreativeRequest, dispatchCreativeStatus, dispatchCreativeCompleted, dispatchPaymentConfirmed, getKernelStatus, dispatchHealthCheck } from "./kernel-bridge.js";
 
@@ -18,6 +19,8 @@ const API_KEY = process.env.OPENROUTER_API_KEY || "";
 if (!API_KEY) {
   console.warn("[AgentLoop] OPENROUTER_API_KEY not set.");
 }
+
+const client = new OpenRouter({ apiKey: API_KEY });
 
 export const creativeHooks = new HooksManager();
 
@@ -66,8 +69,8 @@ creativeHooks.on("SessionEnd", {
   },
 });
 
-export async function buildToolSet(options?: { mcpServers?: Array<{ url: string; name: string }> }): Promise<any[]> {
-  let tools: any[] = [...creativeTools, cdpSettlementTool];
+export async function buildToolSet(options?: { mcpServers?: Array<{ url: string; name: string }> }): Promise<Tool[]> {
+  let tools: Tool[] = [...creativeTools, cdpSettlementTool];
   if (options?.mcpServers && options.mcpServers.length > 0) {
     try {
       const mcpHandles = await Promise.all(
@@ -98,19 +101,19 @@ export async function runCreativeAgent(brief: string, options?: {
 
   const validation = validateStopParams(maxSteps, maxCostUSD);
   if (!validation.valid) {
-    throw new CreativeError(`Invalid stop parameters: ${validation.errors.join(", ")}`, "INVALID_CONFIG", { errors: validation.errors });
+    throw new CreativeError(`Invalid stop parameters: ${validation.errors.join(", ")}`, ErrorCode.INVALID_CONFIG, { errors: validation.errors });
   }
 
   // Dispatch creative.request to RAE-Kernel for A2A coordination
   await dispatchCreativeRequest(brief, requestId, options?.maxCostUSD ? (options.maxCostUSD > 0.5 ? 'high' : 'normal') : 'normal');
 
   const tools = await buildToolSet(options);
-  const stopConditions = [stepCountIs(maxSteps), maxCost(maxCostUSD), hasToolCall("finish")];
+  const stopConditions = [stepCountIs(maxSteps), maxCost(maxCostUSD), hasToolCall("finish")] as const;
 
   try {
     await dispatchCreativeStatus(requestId, 'running', 'Processing creative brief through OpenRouter agent loop');
 
-    const result = await callModel({
+    const result = await callModel(client, {
       model, input: brief,
       instructions: `You are Tiffany, Creative-Integrator for the RAEN fleet. Create creative assets. Every output must be machine-readable and x402-compliant.`,
       tools, hooks: creativeHooks, stopWhen: stopConditions, allowFinalResponse: true,
@@ -121,18 +124,18 @@ export async function runCreativeAgent(brief: string, options?: {
     return result;
   } catch (err) {
     await dispatchCreativeStatus(requestId, 'failed', String(err));
-    throw new CreativeError(`callModel failed: ${handleError(err)}`, "CALL_MODEL_FAILURE", { model, brief });
+    throw new CreativeError(`callModel failed: ${handleError(err)}`, ErrorCode.CALL_MODEL_FAILURE, { model, brief });
   }
 }
 
 export async function runCreativePipeline(pipeline: { research: string; generation: string; review: string; }): Promise<{ research: any; generation: any; review: any }> {
-  const researchResult = await callModel({ model: MODEL, input: pipeline.research, tools: [...creativeTools, cdpSettlementTool], stopWhen: [stepCountIs(5), maxCost(0.25)] });
-  const generationResult = await callModel({ model: MODEL, input: `${pipeline.generation}\n\nContext: ${await researchResult.getText() || ""}`, tools: [...creativeTools, cdpSettlementTool], stopWhen: [stepCountIs(10), maxCost(0.50)] });
-  const reviewResult = await callModel({ model: MODEL, input: pipeline.review, tools: [...creativeTools, cdpSettlementTool], stopWhen: [stepCountIs(3), maxCost(0.25)] });
+  const researchResult = await callModel(client, { model: MODEL, input: pipeline.research, tools: [...creativeTools, cdpSettlementTool], stopWhen: [stepCountIs(5), maxCost(0.25)] });
+  const generationResult = await callModel(client, { model: MODEL, input: `${pipeline.generation}\n\nContext: ${await researchResult.getText() || ""}`, tools: [...creativeTools, cdpSettlementTool], stopWhen: [stepCountIs(10), maxCost(0.50)] });
+  const reviewResult = await callModel(client, { model: MODEL, input: pipeline.review, tools: [...creativeTools, cdpSettlementTool], stopWhen: [stepCountIs(3), maxCost(0.25)] });
   return { research: researchResult, generation: generationResult, review: reviewResult };
 }
 
-export async function batchGenerateCreatives(briefs: string[], options?: { parallel?: number; model?: string }): Promise<any[]> {
+export async function batchGenerateCreatives(briefs: string[], options?: { parallel?: number; model?: string; maxSteps?: number; maxCostUSD?: number }): Promise<any[]> {
   const batchSize = options?.parallel || 3;
   const results: any[] = [];
   for (let i = 0; i < briefs.length; i += batchSize) {

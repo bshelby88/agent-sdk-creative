@@ -54,7 +54,7 @@ export async function generateAllSurfaces(service: ServiceSurface): Promise<stri
   const baseDir = join(process.cwd(), 'x402-marketing-surfaces', service.serviceName);
 
   for (const surfaceType of ['x402.json', 'llms.txt', 'pricing.md', 'sample'] as const) {
-    const result = await generate_x402_surface.execute({
+    const result = await generate_x402_surface.function.execute(generate_x402_surface.function.inputSchema.parse({
       surfaceType,
       serviceName: service.serviceName,
       serviceDescription: service.serviceDescription,
@@ -62,7 +62,7 @@ export async function generateAllSurfaces(service: ServiceSurface): Promise<stri
       payTo: service.payTo,
       baseUrl: service.baseUrl,
       capabilities: service.capabilities,
-    });
+    }));
     surfaces.push(result.content);
 
     const dir = surfaceType === 'x402.json' ? join(baseDir, '.well-known') : baseDir;

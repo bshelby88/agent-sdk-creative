@@ -42,7 +42,7 @@ describe('generateAllSurfaces', () => {
     const baseDir = join(process.cwd(), 'x402-marketing-surfaces', 'test-creative');
     await generateAllSurfaces(testServices[0]);
 
-    expect(existsSync(join(baseDir, 'x402.json'))).toBe(true);
+    expect(existsSync(join(baseDir, '.well-known', 'x402.json'))).toBe(true);
     expect(existsSync(join(baseDir, 'llms.txt'))).toBe(true);
     expect(existsSync(join(baseDir, 'pricing.md'))).toBe(true);
     expect(existsSync(join(baseDir, 'sample'))).toBe(true);
@@ -53,9 +53,9 @@ describe('generateAllSurfaces', () => {
 describe('generateAllFleetSurfaces', () => {
   it('should generate surfaces for all services', async () => {
     const allSurfaces = await generateAllFleetSurfaces();
-    expect(Object.keys(allSurfaces)).toHaveLength(2);
-    expect(allSurfaces['test-creative']).toHaveLength(4);
-    expect(allSurfaces['test-marketing']).toHaveLength(4);
+    expect(Object.keys(allSurfaces)).toHaveLength(3);
+    expect(allSurfaces['tiffany-creative']).toHaveLength(4);
+    expect(allSurfaces['tiffany-marketing']).toHaveLength(4);
   });
 });
 

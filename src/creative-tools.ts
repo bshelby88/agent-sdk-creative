@@ -233,7 +233,7 @@ export const connect_creative_mcp = tool({
     const configs = [
       { url: 'https://comfyui.example.com/mcp', name: 'ComfyUI', authKind: 'bearer' as const },
       { url: 'https://opensea.example.com/mcp', name: 'OpenSea', authKind: 'bearer' as const },
-      { url: 'https://github.example.com/mcp', name: 'GitHub', authKind: 'token' as const },
+      { url: 'https://github.example.com/mcp', name: 'GitHub', authKind: 'bearer' as const },
     ];
     const match = configs.find(c => c.name.toLowerCase() === server);
     if (!match) return { connected: false, toolCount: 0, tools: [] };

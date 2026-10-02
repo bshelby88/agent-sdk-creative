@@ -19,6 +19,8 @@
 
 import { execSync } from 'child_process';
 import { join } from 'path';
+import { tool } from '@openrouter/agent';
+import { z } from 'zod';
 
 // ─── Constants ────────────────────────────────────────────────────────────
 
@@ -273,22 +275,28 @@ export function settleCreativeAsset(
 
 // ─── Export for agent-loop integration ────────────────────────────────────
 
-export const cdpSettlementTool = {
+export const cdpSettlementTool = tool({
   name: 'cdp_settle_creative',
   description: 'Settle creative asset payments via CDP smart accounts using USDC on Base (eip155:8453). Uses gasless ERC-4337 useroperations via CDP paymaster.',
-  inputSchema: {
-    type: 'object' as const,
-    properties: {
-      serviceName: { type: 'string', description: 'Name of the creative service' },
-      price: { type: 'string', description: 'Price in USDC (e.g. "$0.10")' },
-      payTo: { type: 'string', description: 'Recipient address (defaults to canonical treasury)' },
-      asset: { type: 'string', default: 'USDC', description: 'Settlement asset' },
-      network: { type: 'string', default: NETWORK, description: 'Blockchain network' },
-    },
-    required: ['serviceName', 'price'] as const,
-  },
-  execute: async (input: { serviceName: string; price: string; payTo?: string; asset?: string; network?: string }) => {
-    const result = settleCreativeAsset(input.serviceName, input.price, input.payTo);
+  inputSchema: z.object({
+    serviceName: z.string().describe('Name of the creative service'),
+    price: z.string().describe('Price in USDC (e.g. "$0.10")'),
+    payTo: z.string().optional().describe('Recipient address (defaults to canonical treasury)'),
+    asset: z.string().default('USDC').describe('Settlement asset'),
+    network: z.string().default(NETWORK).describe('Blockchain network'),
+  }),
+  outputSchema: z.object({
+    status: z.string(),
+    userOpHash: z.string().optional(),
+    txHash: z.string().optional(),
+    network: z.string(),
+    amount: z.string(),
+    asset: z.string(),
+    payTo: z.string(),
+    from: z.string(),
+  }),
+  execute: async ({ serviceName, price, payTo }) => {
+    const result = settleCreativeAsset(serviceName, price, payTo);
     return result;
   },
-};
+});

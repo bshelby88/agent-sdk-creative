@@ -11,14 +11,14 @@
  * 5. Claim-Mark-Release state tracking
  */
 
-import { creativeTools, compose_music, generate_x402_surface } from './creative-tools.js';
+import { generate_ascii_art, create_svg_diagram, build_html_landing, create_design_md_token, generate_sketch_mockup, generate_x402_surface, compose_music } from './creative-tools.js';
 import { generateAllFleetSurfaces, auditSurfaceCompliance } from './surfaces-generator.js';
 import { validateStopConditions, createClaim, markProgress, markDone, CreativeAssetState } from './agent-loop.js';
 import { validateSurfaceCompliance } from './error-handler.js';
 
 const TREASURY = '0x7861db4efc14a1ed5dd8c96c528a3796560f1393';
 
-async function demo() {
+export async function demo() {
   console.log('═══════════════════════════════════════════════════════════');
   console.log('  RAEN Fleet — @tiffany/agent-sdk-creative Demo Pipeline');
   console.log('═══════════════════════════════════════════════════════════\n');
@@ -28,52 +28,52 @@ async function demo() {
 
   // ASCII Art
   console.log('[1/7] ASCII Art: RAEN Banner');
-  const asciiResult = await creativeTools[0].execute({ text: 'RAEN', font: 'slant', style: 'banner' });
+  const asciiResult = await generate_ascii_art.function.execute(generate_ascii_art.function.inputSchema.parse({ text: 'RAEN', font: 'slant', style: 'banner' }));
   console.log(asciiResult.asciiArt);
   console.log(`  Font: ${asciiResult.font}, Width: ${asciiResult.width}\n`);
 
   // SVG Diagram
   console.log('[2/7] SVG Diagram: Fleet Architecture');
-  const svgResult = await creativeTools[1].execute({
+  const svgResult = await create_svg_diagram.function.execute(create_svg_diagram.function.inputSchema.parse({
     diagramType: 'architecture', title: 'RAEN Fleet Architecture',
     nodes: [{ id: 'tiffany', label: 'Tiffany', type: 'lane' }, { id: 'kernel', label: 'RAE Kernel', type: 'service' }],
     connections: [{ from: 'tiffany', to: 'kernel', label: 'dispatch' }],
     theme: 'dark',
-  });
+  }));
   console.log(`  SVG: ${svgResult.svgContent.substring(0, 80)}... (${svgResult.nodeCount} nodes)\n`);
 
   // HTML Landing
   console.log('[3/7] HTML Landing: tiffany-creative');
-  const htmlResult = await creativeTools[2].execute({
+  const htmlResult = await build_html_landing.function.execute(build_html_landing.function.inputSchema.parse({
     serviceName: 'tiffany-creative',
     serviceDescription: 'Creative-integrator for the RAEN fleet',
     endpoints: [{ path: '/api/generate', method: 'POST', price: '$0.10', description: 'Generate a creative asset' }],
     x402Enabled: true,
-  });
+  }));
   console.log(`  HTML: ${htmlResult.html.substring(0, 80)}...`);
   console.log(`  Surfaces: ${htmlResult.surfaces.join(', ')}\n`);
 
   // Design Tokens
   console.log('[4/7] Design Tokens');
-  const tokenResult = await creativeTools[3].execute({
+  const tokenResult = await create_design_md_token.function.execute(create_design_md_token.function.inputSchema.parse({
     tokenType: 'color',
     tokens: [{ name: 'primary', value: '#e94560', description: 'RAEN accent red' }],
     format: 'design-md',
-  });
+  }));
   console.log(`  ${tokenResult.content}\n`);
 
   // Sketch Mockup
   console.log('[5/7] Sketch Mockup: Creative Dashboard');
-  const sketchResult = await creativeTools[4].execute({
+  const sketchResult = await generate_sketch_mockup.function.execute(generate_sketch_mockup.function.inputSchema.parse({
     type: 'dashboard',
     spec: { header: 'Creative Dashboard', sections: [{ title: 'Overview', content: 'Asset counts and revenue' }], footer: 'RAEN Fleet' },
     style: 'hand-drawn',
-  });
+  }));
   console.log(`  Preview: ${sketchResult.previewUrl.substring(0, 60)}...\n`);
 
   // x402 Surface
   console.log('[6/7] x402 Surface: tiffany-creative');
-  const x402Result = await generate_x402_surface.execute({
+  const x402Result = await generate_x402_surface.function.execute(generate_x402_surface.function.inputSchema.parse({
     surfaceType: 'x402.json',
     serviceName: 'tiffany-creative',
     serviceDescription: 'Creative-integrator service for the RAEN fleet',
@@ -81,17 +81,17 @@ async function demo() {
     payTo: TREASURY,
     baseUrl: 'https://tiffany-creative.fly.dev',
     capabilities: ['/api/generate', '/api/batch', '/api/preview'],
-  });
+  }));
   const parsed = JSON.parse(x402Result.content);
   console.log(`  x402Version: ${parsed.x402Version}, PayTo: ${parsed.payTo}, Endpoints: ${parsed.endpoints.length}`);
   console.log(`  Schema: ${parsed.$schema}\n`);
 
   // Music
   console.log('[7/7] Music Composition: RAEN Anthem');
-  const musicResult = await compose_music.execute({
+  const musicResult = await compose_music.function.execute(compose_music.function.inputSchema.parse({
     mood: 'heroic', tempo: 140, duration: 16, key: 'C major',
     instruments: ['piano', 'strings', 'synth'], campaign: 'raen-fleet-launch',
-  });
+  }));
   console.log(`  Composition ID: ${musicResult.compositionId}`);
   console.log(`  Bars: ${musicResult.bars.length}, Tempo: ${musicResult.tempo} BPM`);
   console.log(`  Style: ${musicResult.metadata.style}`);
