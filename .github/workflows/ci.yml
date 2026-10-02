@@ -176,15 +176,13 @@ jobs:
           export FLY_BIN_DIR="$HOME/.fly"
           echo "$FLY_BIN_DIR" >> $GITHUB_PATH
 
-      - name: Login to Fly.io
-        uses: flyio/action-setup@v1
-        with:
-          fly_api_token: ${{ secrets.FLY_API_TOKEN }}
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@v1
 
       - name: Deploy to Fly.io
         run: |
-          fly deploy --remote-only --build-arg NODE_VERSION=${{ env.NODE_VERSION }} 2>&1 || \
-          fly launch --name tiffany-creative --region iad --memory 512 --cpus 1 --no-deploy 2>&1 || \
+          flyctl deploy --remote-only --build-arg NODE_VERSION=${{ env.NODE_VERSION }} 2>&1 || \
+          flyctl launch --name tiffany-creative --region iad --memory 512 --cpus 1 --no-deploy 2>&1 || \
           echo "Fly deployment completed or skipped"
 
       - name: Verify deployment
