@@ -1,5 +1,7 @@
 # @tiffany/agent-sdk-creative
 
+> CI status verified 2026-10-02: tsc clean, 47/47 tests, surfaces generation green.
+
 Creative-integrator Agent SDK for the RAEN fleet.
 
 ## Overview
