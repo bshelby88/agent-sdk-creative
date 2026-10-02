@@ -38,13 +38,15 @@ jobs:
       - name: Generate all fleet surfaces
         run: |
           npx tsx -e "
-            const { generateAllFleetSurfaces } = require('./dist/surfaces-generator.js');
-            const surfaces = await generateAllFleetSurfaces();
-            console.log('Generated surfaces:');
-            for (const [service, files] of Object.entries(surfaces)) {
-              console.log(\`  \${service}: \${files.length} surfaces\`);
-            }
-            console.log('Total surfaces:', Object.values(surfaces).flat().length);
+            (async () => {
+              const { generateAllFleetSurfaces } = require('./dist/surfaces-generator.js');
+              const surfaces = await generateAllFleetSurfaces();
+              console.log('Generated surfaces:');
+              for (const [service, files] of Object.entries(surfaces)) {
+                console.log(\`  \${service}: \${files.length} surfaces\`);
+              }
+              console.log('Total surfaces:', Object.values(surfaces).flat().length);
+            })().catch((e) => { console.error(e); process.exit(1); });
           "
 
       - name: Upload surfaces artifact
