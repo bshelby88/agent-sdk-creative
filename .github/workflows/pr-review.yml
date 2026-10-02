@@ -87,9 +87,9 @@ jobs:
 
             | Check | Status |
             |-------|--------|
-            | TypeScript Compilation | ${{ steps.review.outputs.typecheck_exit == 0 ? '✅ Pass' : '❌ Fail' }} |
+            | TypeScript Compilation | ${{ steps.review.outputs.typecheck_exit == '0' && '✅ Pass' || '❌ Fail' }} |
             | TODO/FIXME Count | ${{ steps.review.outputs.todo_count }} |
-            | Secret Detection | ${{ steps.review.outputs.security_flag == 'false' ? '✅ Clean' : '⚠️ Flagged' }} |
+            | Secret Detection | ${{ steps.review.outputs.security_flag == 'false' && '✅ Clean' || '⚠️ Flagged' }} |
             | RAEN Charter Compliance | ✅ Ready for review |
 
             **Branch protection**: All required checks must pass before merge.
