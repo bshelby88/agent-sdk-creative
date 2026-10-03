@@ -55,3 +55,6 @@ temp/
 
 # Hermes
 .hermes/
+
+# Generated planning artifacts
+NEXT-ACTIONS.md

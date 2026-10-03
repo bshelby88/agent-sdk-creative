@@ -13,7 +13,7 @@
  *   Smart Account: 0x0E0C42862aFCcA171d1C48bacBD278B8DB8F8f68
  *   Owner:         0xe1271d07586d5a73004761035b38793a244FE37c
  *   USDC (Base):   0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
- *   Facilitator:   0x93F6601151cCB08F333AB4B1CCcfb1e188c0bE44
+ *   Facilitator:   https://x402-agent-pay.com/facilitator
  *   Network:       eip155:8453
  */
 
@@ -29,7 +29,7 @@ export const CDP_CONFIG = join(process.env.LOCALAPPDATA || '', 'Roaming/cdp/conf
 
 export const NETWORK = 'eip155:8453' as const;
 export const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
-export const X402_FACILITATOR = '0x93F6601151cCB08F333AB4B1CCcfb1e188c0bE44';
+export const X402_FACILITATOR = 'https://x402-agent-pay.com/facilitator';
 
 // Canonical treasury from MONEY-TRUTH-CANONICAL-20260923.md
 export const TREASURY_EOA = '0x7861db4efc14a1ed5dd8c96c528a3796560f1393';

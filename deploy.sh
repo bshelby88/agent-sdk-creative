@@ -107,7 +107,7 @@ run_tests() {
           serviceName: 'tiffany-creative',
           serviceDescription: 'Creative-integrator service',
           price: '\$0.10',
-          payTo: '0x0E0C4286f3A2B6e0d8d7c9a5F4b3E2D1C0A9F8E7',
+          payTo: '0x7861db4efc14a1ed5dd8c96c528a3796560f1393',
           baseUrl: 'https://tiffany-creative.fly.dev',
           capabilities: ['/api/generate', '/api/batch']
         });

@@ -50,7 +50,8 @@ export class CreativeError extends Error {
 /**
  * Safely handle errors from async operations with context.
  */
-export function handleError(err: any): string {
+export function handleError(err?: any): string {
+  if (!err) return "";
   if (err instanceof CreativeError) {
     return err.message;
   }

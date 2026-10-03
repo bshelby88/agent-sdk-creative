@@ -1,19 +1,6 @@
-/**
- * Demo script — showcases the full creative pipeline.
- * 
- * Usage: npx tsx src/demo.ts
- * 
- * Demonstrates:
- * 1. Creative tool execution (ASCII art, SVG, HTML, music, sketches)
- * 2. x402 surface generation for all services
- * 3. Surface compliance audit
- * 4. Agent loop stop condition validation
- * 5. Claim-Mark-Release state tracking
- */
-
-import { generate_ascii_art, create_svg_diagram, build_html_landing, create_design_md_token, generate_sketch_mockup, generate_x402_surface, compose_music } from './creative-tools.js';
+import { creativeTools, compose_music, generate_x402_surface } from './creative-tools.js';
 import { generateAllFleetSurfaces, auditSurfaceCompliance } from './surfaces-generator.js';
-import { validateStopConditions, createClaim, markProgress, markDone, CreativeAssetState } from './agent-loop.js';
+import { validateStopConditions, createClaim, markProgress, markDone } from './agent-loop.js';
 import { validateSurfaceCompliance } from './error-handler.js';
 
 const TREASURY = '0x7861db4efc14a1ed5dd8c96c528a3796560f1393';
@@ -23,132 +10,82 @@ export async function demo() {
   console.log('  RAEN Fleet — @tiffany/agent-sdk-creative Demo Pipeline');
   console.log('═══════════════════════════════════════════════════════════\n');
 
-  // ─── Phase 1: Creative Tool Execution ──────────────
   console.log('═══ Phase 1: Creative Tool Execution ═══\n');
 
-  // ASCII Art
+  const asciiResult = await (creativeTools[0] as any).function.execute({ text: 'RAEN', font: 'slant', style: 'banner' }) as any;
   console.log('[1/7] ASCII Art: RAEN Banner');
-  const asciiResult = await generate_ascii_art.function.execute(generate_ascii_art.function.inputSchema.parse({ text: 'RAEN', font: 'slant', style: 'banner' }));
   console.log(asciiResult.asciiArt);
   console.log(`  Font: ${asciiResult.font}, Width: ${asciiResult.width}\n`);
 
-  // SVG Diagram
-  console.log('[2/7] SVG Diagram: Fleet Architecture');
-  const svgResult = await create_svg_diagram.function.execute(create_svg_diagram.function.inputSchema.parse({
+  const svgResult = await (creativeTools[1] as any).function.execute({
     diagramType: 'architecture', title: 'RAEN Fleet Architecture',
     nodes: [{ id: 'tiffany', label: 'Tiffany', type: 'lane' }, { id: 'kernel', label: 'RAE Kernel', type: 'service' }],
-    connections: [{ from: 'tiffany', to: 'kernel', label: 'dispatch' }],
-    theme: 'dark',
-  }));
-  console.log(`  SVG: ${svgResult.svgContent.substring(0, 80)}... (${svgResult.nodeCount} nodes)\n`);
+    connections: [{ from: 'tiffany', to: 'kernel', label: 'dispatch' }], theme: 'dark',
+  }) as any;
+  console.log('[2/7] SVG Diagram');
+  console.log(`  ${svgResult.svgContent.substring(0, 60)}... (${svgResult.nodeCount} nodes)\n`);
 
-  // HTML Landing
-  console.log('[3/7] HTML Landing: tiffany-creative');
-  const htmlResult = await build_html_landing.function.execute(build_html_landing.function.inputSchema.parse({
-    serviceName: 'tiffany-creative',
-    serviceDescription: 'Creative-integrator for the RAEN fleet',
-    endpoints: [{ path: '/api/generate', method: 'POST', price: '$0.10', description: 'Generate a creative asset' }],
+  const htmlResult = await (creativeTools[2] as any).function.execute({
+    serviceName: 'tiffany-creative', serviceDescription: 'Creative-integrator',
+    endpoints: [{ path: '/api/generate', method: 'POST', price: '$0.10', description: 'Generate' }],
     x402Enabled: true,
-  }));
-  console.log(`  HTML: ${htmlResult.html.substring(0, 80)}...`);
-  console.log(`  Surfaces: ${htmlResult.surfaces.join(', ')}\n`);
+  }) as any;
+  console.log('[3/7] HTML Landing: Surfaces:', htmlResult.surfaces.join(', '));
 
-  // Design Tokens
-  console.log('[4/7] Design Tokens');
-  const tokenResult = await create_design_md_token.function.execute(create_design_md_token.function.inputSchema.parse({
-    tokenType: 'color',
-    tokens: [{ name: 'primary', value: '#e94560', description: 'RAEN accent red' }],
-    format: 'design-md',
-  }));
-  console.log(`  ${tokenResult.content}\n`);
+  const tokenResult = await (creativeTools[3] as any).function.execute({
+    tokenType: 'color', tokens: [{ name: 'primary', value: '#e94560' }], format: 'design-md',
+  }) as any;
+  console.log('[4/7] Design Tokens:', tokenResult.tokenCount, 'tokens');
 
-  // Sketch Mockup
-  console.log('[5/7] Sketch Mockup: Creative Dashboard');
-  const sketchResult = await generate_sketch_mockup.function.execute(generate_sketch_mockup.function.inputSchema.parse({
-    type: 'dashboard',
-    spec: { header: 'Creative Dashboard', sections: [{ title: 'Overview', content: 'Asset counts and revenue' }], footer: 'RAEN Fleet' },
+  const sketchResult = await (creativeTools[4] as any).function.execute({
+    type: 'dashboard', spec: { header: 'Dashboard', sections: [{ title: 'Overview', content: 'Data' }], footer: 'RAEN' },
     style: 'hand-drawn',
-  }));
-  console.log(`  Preview: ${sketchResult.previewUrl.substring(0, 60)}...\n`);
+  }) as any;
+  console.log('[5/7] Sketch Mockup');
 
-  // x402 Surface
-  console.log('[6/7] x402 Surface: tiffany-creative');
-  const x402Result = await generate_x402_surface.function.execute(generate_x402_surface.function.inputSchema.parse({
-    surfaceType: 'x402.json',
-    serviceName: 'tiffany-creative',
-    serviceDescription: 'Creative-integrator service for the RAEN fleet',
-    price: '$0.10',
-    payTo: TREASURY,
-    baseUrl: 'https://tiffany-creative.fly.dev',
-    capabilities: ['/api/generate', '/api/batch', '/api/preview'],
-  }));
+  const x402Result = await (generate_x402_surface as any).function.execute({
+    surfaceType: 'x402.json', serviceName: 'tiffany-creative', serviceDescription: 'Creative service',
+    price: '$0.10', payTo: TREASURY, baseUrl: 'https://tiffany-creative.fly.dev',
+    capabilities: ['/api/generate', '/api/batch'],
+  }) as any;
   const parsed = JSON.parse(x402Result.content);
-  console.log(`  x402Version: ${parsed.x402Version}, PayTo: ${parsed.payTo}, Endpoints: ${parsed.endpoints.length}`);
-  console.log(`  Schema: ${parsed.$schema}\n`);
+  console.log('[6/7] x402 Surface: v' + parsed.x402Version + ', PayTo: ' + parsed.payTo);
 
-  // Music
-  console.log('[7/7] Music Composition: RAEN Anthem');
-  const musicResult = await compose_music.function.execute(compose_music.function.inputSchema.parse({
+  const musicResult = await (compose_music as any).function.execute({
     mood: 'heroic', tempo: 140, duration: 16, key: 'C major',
     instruments: ['piano', 'strings', 'synth'], campaign: 'raen-fleet-launch',
-  }));
-  console.log(`  Composition ID: ${musicResult.compositionId}`);
-  console.log(`  Bars: ${musicResult.bars.length}, Tempo: ${musicResult.tempo} BPM`);
-  console.log(`  Style: ${musicResult.metadata.style}`);
-  console.log(`  Metadata: ${JSON.stringify(musicResult.metadata)}\n`);
+  }) as any;
+  console.log('[7/7] Music Composition: ' + musicResult.compositionId + ', ' + musicResult.bars.length + ' bars');
 
-  // ─── Phase 2: x402 Surfaces ────────────────────────
-  console.log('═══ Phase 2: x402 Surface Generation ═══\n');
+  console.log('\n═══ Phase 2: x402 Surface Generation ═══\n');
   const allSurfaces = await generateAllFleetSurfaces();
   for (const [service, surfaces] of Object.entries(allSurfaces)) {
-    console.log(`  ${service}: ${surfaces.length} surfaces generated`);
+    console.log('  ' + service + ': ' + surfaces.length + ' surfaces');
   }
-  console.log();
 
-  // ─── Phase 3: Compliance Audit ─────────────────────
-  console.log('═══ Phase 3: Surface Compliance Audit ═══\n');
+  console.log('\n═══ Phase 3: Compliance Audit ═══\n');
   const auditResults = await auditSurfaceCompliance([
-    { serviceName: 'tiffany-creative', serviceDescription: 'Creative-integrator service', baseUrl: 'https://tiffany-creative.fly.dev', price: '$0.10', payTo: TREASURY, capabilities: ['/api/generate'] },
-    { serviceName: 'tiffany-marketing', serviceDescription: 'Marketing service', baseUrl: 'https://tiffany-marketing.fly.dev', price: '$0.05', payTo: TREASURY, capabilities: ['/api/content'] },
+    { serviceName: 'tiffany-creative', serviceDescription: 'Creative service', baseUrl: 'https://tiffany-creative.fly.dev', price: '$0.10', payTo: TREASURY, capabilities: ['/api/generate'] },
+    { serviceName: 'tiffany-marketing', serviceDescription: 'Marketing', baseUrl: 'https://tiffany-marketing.fly.dev', price: '$0.05', payTo: TREASURY, capabilities: ['/api/content'] },
   ]);
-  for (const result of auditResults) {
-    console.log(`  ${result.service}: ${result.status}`);
-    if (result.missing.length > 0) console.log(`    Missing: ${result.missing.join(', ')}`);
-    if (result.errors.length > 0) console.log(`    Errors: ${result.errors.join(', ')}`);
+  for (const r of auditResults) { console.log('  ' + r.service + ': ' + r.status); }
+
+  console.log('\n═══ Phase 4: Stop Conditions ═══\n');
+  const tests = [{ s: 10, m: 10, c: 0.5, mc: 1.0, f: false }, { s: 5, m: 10, c: 1.0, mc: 1.0, f: false }, { s: 3, m: 10, c: 0.5, mc: 1.0, f: true }];
+  for (const t of tests) {
+    const r = validateStopConditions(t.s, t.m, t.c, t.mc, t.f);
+    console.log('  Steps=' + t.s + '/' + t.m + ' → ' + (r.shouldStop ? 'STOP' : 'CONTINUE') + ' (' + r.reason + ')');
   }
-  console.log();
 
-  // ─── Phase 4: Stop Conditions ──────────────────────
-  console.log('═══ Phase 4: Stop Condition Validation ═══\n');
-  const stopTests = [
-    { stepCount: 10, maxSteps: 10, cost: 0.5, maxCost: 1.0, finish: false },
-    { stepCount: 5, maxSteps: 10, cost: 1.0, maxCost: 1.0, finish: false },
-    { stepCount: 3, maxSteps: 10, cost: 0.5, maxCost: 1.0, finish: true },
-  ];
-  for (const test of stopTests) {
-    const result = validateStopConditions(test.stepCount, test.maxSteps, test.cost, test.maxCost, test.finish);
-    console.log(`  Steps=${test.stepCount}/${test.maxSteps}, Cost=$${test.cost}/${test.maxCost}, Finish=${test.finish} → ${result.shouldStop ? 'STOP' : 'CONTINUE'} (${result.reason})`);
-  }
-  console.log();
+  console.log('\n═══ Phase 5: Claim-Mark-Release ═══\n');
+  const state = createClaim('asset-001', 'tiffany');
+  const p = markProgress(state, 'Initial pass');
+  const d = markDone(p, 'Final asset');
+  console.log('  Claimed by tiffany, progressed, done. Evidence: ' + d.evidence.length);
 
-  // ─── Phase 5: Claim-Mark-Release ───────────────────
-  console.log('═══ Phase 5: Claim-Mark-Release (RAEN §2) ═══\n');
-  const state: CreativeAssetState = createClaim('asset-001', 'tiffany');
-  console.log(`  Claimed: ${state.assetId} by ${state.agent} at ${state.ts}`);
-
-  const progress = markProgress(state, 'Initial creative pass complete');
-  console.log(`  Progress: ${progress.status} — ${progress.evidence[0]}`);
-
-  const done = markDone(progress, 'Final creative asset delivered');
-  console.log(`  Done: ${done.status} — ${done.evidence[1]}`);
-  console.log(`  Total evidence entries: ${done.evidence.length}`);
-  console.log();
-
-  // ─── Summary ────────────────────────────────────────
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log('  Demo Complete — All 5 phases verified successfully.');
-  console.log('  Tools: 8 | Surfaces: 12 | Compliance: 2 services');
+  console.log('\n═══════════════════════════════════════════════════════════');
+  console.log('  Demo Complete — All 5 phases verified.');
   console.log('═══════════════════════════════════════════════════════════');
 }
-
-demo().catch(console.error);
+// Self-run only when executed directly (`tsx src/demo.ts`); index.ts imports and calls demo().
+if (process.argv[1]?.includes("demo")) demo().catch(console.error);

@@ -22,7 +22,7 @@ export interface MCPConfig {
 
 export interface MCPToolHandle {
   name: string;
-  tools: readonly unknown[];
+  tools: any[];
   connected: boolean;
   error?: CreativeError;
 }
@@ -42,22 +42,16 @@ export interface MCPConnectionState {
  */
 export async function connectMCP(config: MCPConfig): Promise<MCPToolHandle> {
   try {
-    const authKind = config.authKind || 'bearer';
-    const auth = authKind === 'bearer'
-      ? { kind: 'bearer' as const, token: config.authToken || '' }
-      : authKind === 'headers'
-        ? { kind: 'headers' as const, headers: { Authorization: config.authToken || '' } }
-        : { kind: 'bearer' as const, token: config.authToken || '' };
     const mcp = await createMCPTools({
-      url: config.url,
-      auth,
-      toolNamePrefix: config.toolNamePrefix || config.name.toLowerCase().replace(/\s+/g, '_'),
-    });
+          url: config.url,
+          auth: { kind: (config.authKind || 'bearer') as any, token: config.authToken || '' } as any,
+          toolNamePrefix: config.toolNamePrefix || config.name.toLowerCase().replace(/\s+/g, '_'),
+        });
 
-    const toolNames = mcp.tools.map((t: any) => t.name || t.function?.name || 'unknown');
+        const toolNames = (mcp.tools || []).map((t: any) => t.name || t.function?.name || 'unknown');
     return {
       name: config.name,
-      tools: mcp.tools,
+      tools: [...(mcp.tools ?? [])],
       connected: true,
     };
   } catch (err) {

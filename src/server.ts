@@ -195,10 +195,10 @@ app.post('/api/batch', verifyPayment, async (req, res) => {
 
 app.get('/api/preview', verifyPayment, async (req, res) => {
   try {
-    const { brief } = req.query || {};
-    const result = await runCreativeAgent(brief || 'Preview creative asset', { maxSteps: 3, maxCostUSD: 0.10 });
+    const brief = (req.query.brief as string) || 'Preview creative asset';
+    const result = await runCreativeAgent(brief, { maxSteps: 3, maxCostUSD: 0.10 });
     const text = await result.getText();
-    res.json({ success: true, service: SERVICE_NAME, preview: text.substring(0, 1000), network: NETWORK, payment: { asset: 'USDC', amount: '0.01' }, timestamp: new Date().toISOString() });
+    res.json({ success: true, service: SERVICE_NAME, preview: text.substring(0, 1000), network: NETWORK, payment: { asset: 'USDC', amount: PREVIEW_PRICE }, timestamp: new Date().toISOString() });
   } catch (error: any) { res.status(500).json({ error: error.message }); }
 });
 
