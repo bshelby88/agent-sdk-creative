@@ -37,15 +37,10 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Install Fly CLI
-        run: |
-          curl -L https://fly.io/install.sh | sh
-          export FLY_BIN_DIR="$HOME/.fly"
-          echo "$FLY_BIN_DIR" >> $GITHUB_PATH
-
       - name: Deploy to Fly.io
-        uses: superfly/flyctl-actions/deploy@v1
+        uses: superfly/flyctl-actions@master
         with:
+          args: deploy
           fly_api_token: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Verify deployment
