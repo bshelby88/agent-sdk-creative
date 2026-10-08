@@ -48,8 +48,8 @@ async function main() {
     }
     case '--demo': {
       console.log('[Demo] Launching full creative pipeline demo...');
-      const { demo } = await import('./demo.js');
-      await demo();
+      const result = await import('./demo.js');
+      await result.demo();
       break;
     }
     default: {

@@ -12,10 +12,14 @@
  * Kernel: https://rae-kernel.fly.dev
  */
 
-const KERNEL_BASE = 'https://rae-kernel.fly.dev';
-const API_KEY = '63d86692649b48deb7161f4898b6ab3bfc30485a15f547aa87b927777c95d3dd';
+const KERNEL_BASE = process.env.RAE_KERNEL_URL || 'https://rae-kernel.fly.dev';
+const API_KEY = process.env.RAE_KERNEL_API_KEY || process.env.KERNEL_API_KEY || '';
 const AGENT_ID = 'tiffany-creative';
 const TENANT_ID = 'tiffany';
+
+if (!API_KEY) {
+  console.warn('[KernelBridge] RAE_KERNEL_API_KEY not set — kernel events disabled.');
+}
 
 // ─── Event Types (per RAEN AIP v1) ──────────────────────────────────
 
@@ -267,6 +271,74 @@ export async function dispatchHealthCheck(): Promise<KernelEventResponse> {
     {
       agent: AGENT_ID,
       status: 'healthy',
+      timestamp: new Date().toISOString(),
+    }
+  );
+}
+
+/**
+ * Dispatch creative tool lifecycle events.
+ * Called from agent-loop hooks on PreToolUse / PostToolUse / PostToolUseFailure.
+ */
+export async function dispatchToolStarted(
+  requestId: string,
+  toolName: string,
+  model: string,
+): Promise<KernelEventResponse> {
+  const dedupKey = `creative-tool-started-${requestId}-${toolName}`;
+  return dispatchEvent(
+    CreativeEventType.CREATIVE_STATUS_UPDATE,
+    dedupKey,
+    {
+      request_id: requestId,
+      tool_name: toolName,
+      model,
+      status: 'tool_started',
+      agent: AGENT_ID,
+      timestamp: new Date().toISOString(),
+    }
+  );
+}
+
+export async function dispatchToolCompleted(
+  requestId: string,
+  toolName: string,
+  model: string,
+  durationMs: number,
+): Promise<KernelEventResponse> {
+  const dedupKey = `creative-tool-completed-${requestId}-${toolName}`;
+  return dispatchEvent(
+    CreativeEventType.CREATIVE_STATUS_UPDATE,
+    dedupKey,
+    {
+      request_id: requestId,
+      tool_name: toolName,
+      model,
+      status: 'tool_completed',
+      duration_ms: durationMs,
+      agent: AGENT_ID,
+      timestamp: new Date().toISOString(),
+    }
+  );
+}
+
+export async function dispatchToolFailed(
+  requestId: string,
+  toolName: string,
+  model: string,
+  error: string,
+): Promise<KernelEventResponse> {
+  const dedupKey = `creative-tool-failed-${requestId}-${toolName}`;
+  return dispatchEvent(
+    CreativeEventType.CREATIVE_FAILED,
+    dedupKey,
+    {
+      request_id: requestId,
+      tool_name: toolName,
+      model,
+      status: 'tool_failed',
+      error: error.substring(0, 500),
+      agent: AGENT_ID,
       timestamp: new Date().toISOString(),
     }
   );

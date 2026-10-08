@@ -6,11 +6,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
-# Copy source
+# Copy source (no build step — tsx runs TypeScript directly)
 COPY . .
-
-# Build
-RUN npm run build
 
 # Expose port
 EXPOSE 3000
@@ -19,5 +16,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
   CMD wget -qO- http://localhost:3000/health || exit 1
 
-# Start
+# Start — tsx runs TypeScript directly, no tsc build needed
 CMD ["npx", "tsx", "src/server.ts"]
